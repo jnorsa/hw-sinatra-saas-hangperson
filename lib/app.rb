@@ -9,10 +9,12 @@ class HangpersonApp < Sinatra::Base
   
   before do
     # code that is called before EVERY HTTP request
+    @game = session[:game] || HangpersonGame.new('')
   end
   
   after do
     # code that is called after EVERY HTTP request
+    session[:game] = @game
   end
   
   get '/' do
@@ -28,18 +30,24 @@ class HangpersonApp < Sinatra::Base
     word = params[:word] || HangpersonGame.get_random_word # don't change this line!
     # Don't change the above line: it's necessary for autograder to work properly.
     # Your additional code goes here:
+    @game = HangpersonGame.new(word)
     redirect '/show'
   end
   
   post '/guess' do
     # get the guessed letter from params[:guess] (note: if user left it blank,
     #   params[:guess] will be nil)
+    letter = params[:guess].to_s[0]
+
 
     # Try guessing the letter.  If it has already been guessed,
     #   display "You have already used that letter."
+    if !(@game.guess(letter)) then
+     flash[:message]='You have already used that letter.' 
+    end
 
     # Either way, the user should then be shown the main game screen ('show' action).
-    flash[:message]='test'
+
     redirect '/show'
   end
   
@@ -48,7 +56,7 @@ class HangpersonApp < Sinatra::Base
     # If player wins (word completed), do the 'win' action instead.
     # If player loses (all guesses used), do the 'lose' action instead.
     # Otherwise, show the contents of the 'show.erb' (main game view) template.
-
+    erb :show
   end
   
   get '/win' do
